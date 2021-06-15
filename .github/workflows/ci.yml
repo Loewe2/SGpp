@@ -84,7 +84,29 @@ jobs:
         run: bash $GITHUB_WORKSPACE/tools/travis_scripts/create_deb_install_deb_and_test.sh
       - name: test python packaging
         run: bash $GITHUB_WORKSPACE/tools/travis_scripts/create_and_patch_python_wheel.sh
-  
-  
-  
-  
+  linux-minimal-compiler:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [g++-5, g++-6, g++-7, g++-8, g++-9, g++-10, g++-11, clang-3.9, clang-4.0, clang-5.0, clang-6.0, clang-7, clang-8, clang-9, clang-10, clang-11, clang-12]
+      fail-fast: false
+    steps:
+      - name: "Install ${{ matrix.compiler }}"
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          echo "deb http://dk.archive.ubuntu.com/ubuntu/ bionic main universe" | sudo tee -a /etc/apt/sources.list
+          sudo apt update
+          sudo apt upgrade
+          sudo apt install ${{ matrix.compiler }}
+          ${{ matrix.compiler }} --version
+      - name: install python dependencies
+        run: python -m pip install scons
+      - uses: actions/checkout@v2
+      - name: build
+        run: | 
+          if [[ ${{ matrix.compiler }} == g++* ]]; then
+            export CXX=${{ matrix.compiler }}
+          else
+            export CXX=$(echo ${{ matrix.compiler }} | sed "s/clang/clang++/")
+          fi
+          scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1
