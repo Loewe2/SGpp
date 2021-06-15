@@ -99,6 +99,11 @@ jobs:
           sudo apt upgrade
           sudo apt install ${{ matrix.compiler }}
           ${{ matrix.compiler }} --version
+          if [[ ${{ matrix.compiler }} == g++* ]]; then
+            export GCC=$(echo ${{ matrix.compiler }} | sed "s/g++/gcc/")
+            sudo apt install $GCC
+            $GCC --version
+          fi
       - name: install python dependencies
         run: python -m pip install scons
       - uses: actions/checkout@v2
@@ -106,7 +111,9 @@ jobs:
         run: | 
           if [[ ${{ matrix.compiler }} == g++* ]]; then
             export CXX=${{ matrix.compiler }}
+            export CC=$(echo ${{ matrix.compiler }} | sed "s/g++/gcc/")
           else
             export CXX=$(echo ${{ matrix.compiler }} | sed "s/clang/clang++/")
+            export CC=${{ matrix.compiler }}
           fi
-          scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1
+          scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1 CXX=$CXX CC=$CC
