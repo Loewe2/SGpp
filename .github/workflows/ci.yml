@@ -105,7 +105,7 @@ jobs:
             $GCC --version
           fi
           if [[ ${{ matrix.compiler }} == clang* ]]; then
-            apt-get install libomp-dev
+            sudo apt-get install libomp-dev
           fi
       - name: install python dependencies
         run: python -m pip install scons
