@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <set>
 #include <unordered_set>
