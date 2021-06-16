@@ -108,8 +108,6 @@ jobs:
           if [[ ${{ matrix.compiler }} == clang* ]]; then
             if [[ ${{ matrix.compiler }} == *.* ]]; then
               sudo apt-get install libomp-dev
-            else
-              sudo apt-get install libiomp5
             fi
           fi
       - name: install python dependencies
