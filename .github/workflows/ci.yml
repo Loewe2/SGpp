@@ -109,7 +109,7 @@ jobs:
             if [[ ${{ matrix.compiler }} == *.* ]]; then
               sudo apt-get install libomp-dev
             else
-              sudo apt-get install "$(echo ${{ matrix.compiler }} | sed 's/clang/libomp/')-dev"
+              sudo apt-get install libiomp5
             fi
           fi
       - name: install python dependencies
