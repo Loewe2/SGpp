@@ -175,7 +175,7 @@ jobs:
             export LD_LIBRARY_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/libomp.so" | sed "s|/libomp.so||g"):$LD_LIBRARY_PATH
             export LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBRARY_PATH
           fi
-        name: build
+      - name: build
         run: scons -j 2 SG_ALL=0 SG_BASE=1 SG_PYTHON=1 SG_JAVA=1 RUN_CPP_EXAMPLES=1 RUN_PYTHON_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=$COMPILER
 
   linux-minimal-compiler:
@@ -230,5 +230,5 @@ jobs:
             export LD_LIBRARY_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/libomp.so" | sed "s|/libomp.so||g"):$LD_LIBRARY_PATH
             export LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBRARY_PATH
           fi
-        name: build
+      - name: build
         run: scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=$COMPILER
