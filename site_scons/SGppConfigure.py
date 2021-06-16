@@ -566,8 +566,8 @@ def configureClangCompiler(config):
   ]
   config.env.Append(CPPFLAGS=allWarnings)
 
-  config.env.Append(CPPFLAGS=["-fopenmp"])
-  config.env.Append(LINKFLAGS=["-fopenmp"])
+  config.env.Append(CPPFLAGS=["-fopenmp=libomp"])
+  config.env.Append(LINKFLAGS=["-fopenmp=libomp"])
 
   if config.env["BUILD_STATICLIB"]:
     config.env.Append(CPPFLAGS=["-D_BUILD_STATICLIB"])
