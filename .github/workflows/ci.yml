@@ -127,7 +127,7 @@ jobs:
             export CC=${{ matrix.compiler }}
             
             if [[ ${{ matrix.compiler }} == *.* ]]; then
-              xport OMPH_PATH=$(dpkg -L libomp-7-dev | grep ".*/omp.h" | sed "s|/omp.h||g")
+              export OMPH_PATH=$(dpkg -L libomp-7-dev | grep ".*/omp.h" | sed "s|/omp.h||g")
               export OMPLIB_PATH=$(dpkg -L libomp-7-dev | grep ".*/libomp5.so" | sed "s|/libomp5.so||g")
               export LD_LIBRARY_PATH=$OMPLIB_PATH:$LD_LIBRARY_PATH
               export OMPLIB_PATH=$(dpkg -L libomp-7-dev | grep ".*/libomp.so" | sed "s|/libomp.so||g")
