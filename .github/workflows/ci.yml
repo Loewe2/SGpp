@@ -125,7 +125,16 @@ jobs:
           else
             export CXX=$(echo ${{ matrix.compiler }} | sed "s/clang/clang++/")
             export CC=${{ matrix.compiler }}
-            export CPLUS_INCLUDE_PATH=/usr/lib/gcc/x86_64-linux-gnu/9/include:$CPLUS_INCLUDE_PATH
-            scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=clang
+            
+            if [[ ${{ matrix.compiler }} == *.* ]]; then
+              export OMPH_PATH=dpkg -L libomp5 | sed "s/clang-//")-dev | grep ".*omp.h" | sed "s|omp.h||g" 
+            else
+              export OMPH_PATH=dpkg -L libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev | grep ".*omp.h" | sed "s|omp.h||g"
+            fi
+            export CPLUS_INCLUDE_PATH=$OMPH_PATH:$CPLUS_INCLUDE_PATH
+            echo $CPLUS_INCLUDE_PATH
+            ls $CPLUS_INCLUDE_PATH
           fi
+#            scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=clang
+#          fi
           
