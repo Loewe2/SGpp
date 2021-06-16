@@ -107,7 +107,9 @@ jobs:
           fi
           if [[ ${{ matrix.compiler }} == clang* ]]; then
             if [[ ${{ matrix.compiler }} == *.* ]]; then
-              sudo apt-get install libomp-dev
+              sudo apt install libomp5
+            else
+              sudo apt install libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev
             fi
           fi
       - name: install python dependencies
@@ -122,6 +124,7 @@ jobs:
           else
             export CXX=$(echo ${{ matrix.compiler }} | sed "s/clang/clang++/")
             export CC=${{ matrix.compiler }}
+            export CPLUS_INCLUDE_PATH=/usr/lib/gcc/x86_64-linux-gnu/9/include:$CPLUS_INCLUDE_PATH
             scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=clang
           fi
           
