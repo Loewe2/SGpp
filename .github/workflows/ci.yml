@@ -131,10 +131,12 @@ jobs:
             else
               export OMPH_PATH=$(dpkg -L libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev | grep ".*/omp.h" | sed "s|/omp.h||g")
               export OMPLIB_PATH=$(dpkg -L libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev | grep ".*/libomp5.so" | sed "s|/libomp5.so||g")
+              export LD_LIBRARY_PATH=$OMPLIB_PATH:$LD_LIBRARY_PATH
+              export OMPLIB_PATH=$(dpkg -L libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev | grep ".*/libomp.so" | sed "s|/libomp.so||g")
+              export LD_LIBRARY_PATH=$OMPLIB_PATH:$LD_LIBRARY_PATH
             fi
             export CPLUS_INCLUDE_PATH=$OMPH_PATH:$CPLUS_INCLUDE_PATH
-            export LD_LIBRARY_PATH=$OMPLIB_PATH:$LD_LIBRARY_PATH
             echo $CPLUS_INCLUDE_PATH
-            scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=clang
+            echo $LD_LIBRARY_PATH
           fi
           
