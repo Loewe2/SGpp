@@ -127,7 +127,7 @@ jobs:
             export CC=${{ matrix.compiler }}
             
             if [[ ${{ matrix.compiler }} == *.* ]]; then
-              export OMPH_PATH=dpkg -L libomp5 | sed "s/clang-//")-dev | grep ".*omp.h" | sed "s|omp.h||g" 
+              export OMPH_PATH=dpkg -L libomp5 | grep ".*omp.h" | sed "s|omp.h||g" 
             else
               export OMPH_PATH=dpkg -L libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev | grep ".*omp.h" | sed "s|omp.h||g"
             fi
