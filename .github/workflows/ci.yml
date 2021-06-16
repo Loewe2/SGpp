@@ -55,19 +55,25 @@ jobs:
   #       run: bash $GITHUB_WORKSPACE/tools/travis_scripts/create_and_patch_python_wheel.sh
 
 
-  linux-full:
+  linux-all:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         compiler: [g++-5, g++-6, g++-7, g++-8, g++-9, g++-10, g++-11, clang-3.9, clang-4.0, clang-5.0, clang-6.0, clang-7, clang-8, clang-9, clang-10, clang-11, clang-12]
+        type: [full, medium, small]
       fail-fast: false
     steps:
-      - name: install python dependencies
+      - name: "Install python dependencies"
         run: python -m pip install scons
-      - name: install apt packages
+      - name: "Install apt packages for ${{ matrix.type }}"
         run: |
-          sudo apt update -y
-          sudo apt install -y libboost-test-dev swig python3-dev python3-numpy openjdk-8-jdk doxygen graphviz libgsl-dev zlib1g-dev libeigen3-dev libsuitesparse-dev libarmadillo-dev libgmm++-dev
+          if [[ ${{ matrix.type }} == full ]]; then
+            sudo apt update -y
+            sudo apt install -y libboost-test-dev swig python3-dev python3-numpy openjdk-8-jdk doxygen graphviz libgsl-dev zlib1g-dev libeigen3-dev libsuitesparse-dev libarmadillo-dev libgmm++-dev
+          elif [[ ${{ matrix.type == medium }} ]]; then
+            sudo apt update -y
+            sudo apt install -y libboost-test-dev swig python3-dev python3-numpy openjdk-8-jdk doxygen
+          fi
       - name: "Install ${{ matrix.compiler }}"
         run: |
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -89,10 +95,10 @@ jobs:
             fi
             sudo apt install -y $LIBOMP_VERSION
           fi
-      - name: install python dependencies
+      - name: "Install python dependencies"
         run: python -m pip install scons
       - uses: actions/checkout@v2
-      - name: setup environment
+      - name: "Setup environment, build and run"
         run: | 
           if [[ ${{ matrix.compiler }} == g++* ]]; then
             export CXX=${{ matrix.compiler }}
@@ -113,122 +119,10 @@ jobs:
             export LD_LIBRARY_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/libomp.so" | sed "s|/libomp.so||g"):$LD_LIBRARY_PATH
             export LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBRARY_PATH
           fi
-      - name: build
-        run: scons -j 2 RUN_CPP_EXAMPLES=1 RUN_PYTHON_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=$COMPILER
-
-
-  linux-medium:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        compiler: [g++-5, g++-6, g++-7, g++-8, g++-9, g++-10, g++-11, clang-3.9, clang-4.0, clang-5.0, clang-6.0, clang-7, clang-8, clang-9, clang-10, clang-11, clang-12]
-      fail-fast: false
-    steps:
-      - name: install python dependencies
-        run: python -m pip install scons
-      - name: install apt packages
-        run: |
-          sudo apt update -y
-          sudo apt install -y libboost-test-dev swig python3-dev python3-numpy openjdk-8-jdk doxygen
-      - name: "Install ${{ matrix.compiler }}"
-        run: |
-          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-          echo "deb http://dk.archive.ubuntu.com/ubuntu/ bionic main universe" | sudo tee -a /etc/apt/sources.list
-          echo "deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe" | sudo tee -a /etc/apt/sources.list
-          sudo apt update
-          sudo apt upgrade
-          sudo apt install -y ${{ matrix.compiler }}
-          ${{ matrix.compiler }} --version
-          if [[ ${{ matrix.compiler }} == g++* ]]; then
-            export GCC=$(echo ${{ matrix.compiler }} | sed "s/g++/gcc/")
-            sudo apt install $GCC
-            $GCC --version
+          if [[ ${{ matrix.type }} == full ]]; then
+            scons -j 2 RUN_CPP_EXAMPLES=1 RUN_PYTHON_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=$COMPILER
+          elif [[ ${{ matrix.type }} == medium ]]; then
+            scons -j 2 SG_ALL=0 SG_BASE=1 SG_PYTHON=1 SG_JAVA=1 RUN_CPP_EXAMPLES=1 RUN_PYTHON_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=$COMPILER
           else
-            if [[ ${{ matrix.compiler }} == *.* ]]; then
-              export LIBOMP_VERSION=libomp-7-dev
-            else
-              export LIBOMP_VERSION=libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev
-            fi
-            sudo apt install -y $LIBOMP_VERSION
+            scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=$COMPILER
           fi
-      - name: install python dependencies
-        run: python -m pip install scons
-      - uses: actions/checkout@v2
-      - name: setup environment
-        run: | 
-          if [[ ${{ matrix.compiler }} == g++* ]]; then
-            export CXX=${{ matrix.compiler }}
-            export CC=$(echo ${{ matrix.compiler }} | sed "s/g++/gcc/")
-            export COMPILER=gnu
-          else
-            export CXX=$(echo ${{ matrix.compiler }} | sed "s/clang/clang++/")
-            export CC=${{ matrix.compiler }}
-            export COMPILER=clang
-            
-            if [[ ${{ matrix.compiler }} == *.* ]]; then
-              export LIBOMP_VERSION=libomp-7-dev
-            else
-              export LIBOMP_VERSION=libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev
-            fi
-            export CPLUS_INCLUDE_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/omp.h" | sed "s|/omp.h||g"):$CPLUS_INCLUDE_PATH
-            export LD_LIBRARY_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/libomp5.so" | sed "s|/libomp5.so||g"):$LD_LIBRARY_PATH
-            export LD_LIBRARY_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/libomp.so" | sed "s|/libomp.so||g"):$LD_LIBRARY_PATH
-            export LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBRARY_PATH
-          fi
-      - name: build
-        run: scons -j 2 SG_ALL=0 SG_BASE=1 SG_PYTHON=1 SG_JAVA=1 RUN_CPP_EXAMPLES=1 RUN_PYTHON_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=$COMPILER
-
-  linux-minimal-compiler:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        compiler: [g++-5, g++-6, g++-7, g++-8, g++-9, g++-10, g++-11, clang-3.9, clang-4.0, clang-5.0, clang-6.0, clang-7, clang-8, clang-9, clang-10, clang-11, clang-12]
-      fail-fast: false
-    steps:
-      - name: "Install ${{ matrix.compiler }}"
-        run: |
-          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-          echo "deb http://dk.archive.ubuntu.com/ubuntu/ bionic main universe" | sudo tee -a /etc/apt/sources.list
-          echo "deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe" | sudo tee -a /etc/apt/sources.list
-          sudo apt update
-          sudo apt upgrade
-          sudo apt install -y ${{ matrix.compiler }}
-          ${{ matrix.compiler }} --version
-          if [[ ${{ matrix.compiler }} == g++* ]]; then
-            export GCC=$(echo ${{ matrix.compiler }} | sed "s/g++/gcc/")
-            sudo apt install $GCC
-            $GCC --version
-          else
-            if [[ ${{ matrix.compiler }} == *.* ]]; then
-              export LIBOMP_VERSION=libomp-7-dev
-            else
-              export LIBOMP_VERSION=libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev
-            fi
-            sudo apt install -y $LIBOMP_VERSION
-          fi
-      - name: install python dependencies
-        run: python -m pip install scons
-      - uses: actions/checkout@v2
-      - name: setup environment
-        run: | 
-          if [[ ${{ matrix.compiler }} == g++* ]]; then
-            export CXX=${{ matrix.compiler }}
-            export CC=$(echo ${{ matrix.compiler }} | sed "s/g++/gcc/")
-            export COMPILER=gnu
-          else
-            export CXX=$(echo ${{ matrix.compiler }} | sed "s/clang/clang++/")
-            export CC=${{ matrix.compiler }}
-            export COMPILER=clang
-            
-            if [[ ${{ matrix.compiler }} == *.* ]]; then
-              export LIBOMP_VERSION=libomp-7-dev
-            else
-              export LIBOMP_VERSION=libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev
-            fi
-            export CPLUS_INCLUDE_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/omp.h" | sed "s|/omp.h||g"):$CPLUS_INCLUDE_PATH
-            export LD_LIBRARY_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/libomp5.so" | sed "s|/libomp5.so||g"):$LD_LIBRARY_PATH
-            export LD_LIBRARY_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/libomp.so" | sed "s|/libomp.so||g"):$LD_LIBRARY_PATH
-            export LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBRARY_PATH
-          fi
-      - name: build
-        run: scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=$COMPILER
