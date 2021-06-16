@@ -89,7 +89,7 @@ jobs:
     strategy:
       matrix:
         # compiler: [g++-5, g++-6, g++-7, g++-8, g++-9, g++-10, g++-11, clang-3.9, clang-4.0, clang-5.0, clang-6.0, clang-7, clang-8, clang-9, clang-10, clang-11, clang-12]
-        compiler: [clang-3.9, clang-4.0, clang-5.0, clang-6.0, clang-7, clang-8, clang-9, clang-10, clang-11, clang-12]
+        compiler: [clang-7, clang-8, clang-9, clang-10, clang-11, clang-12]
       fail-fast: false
     steps:
       - name: "Install ${{ matrix.compiler }}"
@@ -130,8 +130,10 @@ jobs:
               export OMPH_PATH=$(dpkg -L libomp5 | grep ".*/omp.h" | sed "s|/omp.h||g")
             else
               export OMPH_PATH=$(dpkg -L libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev | grep ".*/omp.h" | sed "s|/omp.h||g")
+              export OMPLIB_PATH=$(dpkg -L libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev | grep ".*/libomp5.so" | sed "s|/libomp5.so||g")
             fi
             export CPLUS_INCLUDE_PATH=$OMPH_PATH:$CPLUS_INCLUDE_PATH
+            export LD_LIBRARY_PATH=$OMPLIB_PATH:$LD_LIBRARY_PATH
             echo $CPLUS_INCLUDE_PATH
             scons -j 2 SG_PYTHON=0 SG_JAVA=0 RUN_CPP_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=clang
           fi
