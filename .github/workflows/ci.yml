@@ -96,6 +96,7 @@ jobs:
         run: |
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test
           echo "deb http://dk.archive.ubuntu.com/ubuntu/ bionic main universe" | sudo tee -a /etc/apt/sources.list
+          echo "deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe" | sudo tee -a /etc/apt/sources.list
           sudo apt update
           sudo apt upgrade
           sudo apt install ${{ matrix.compiler }}
