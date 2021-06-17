@@ -73,20 +73,19 @@ jobs:
           fi
           sudo apt update
           sudo apt upgrade
-          if [[ ${{ matrix.compiler }} == clang* ]]; then
-            if [[ ${{ matrix.compiler }} == *.* ]]; then
-              export LIBOMP_VERSION=libomp-7-dev
-            else
-              export LIBOMP_VERSION=libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev
-            fi
-            sudo apt install -y $LIBOMP_VERSION
-          fi
           sudo apt install -y ${{ matrix.compiler }}
           ${{ matrix.compiler }} --version
           if [[ ${{ matrix.compiler }} == g++* ]]; then
             export GCC=$(echo ${{ matrix.compiler }} | sed "s/g++/gcc/")
             sudo apt install $GCC
             $GCC --version
+          else
+            if [[ ${{ matrix.compiler }} == *.* ]]; then
+              export LIBOMP_VERSION=libomp-7-dev
+            else
+              export LIBOMP_VERSION=libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev
+            fi
+            sudo apt install -y $LIBOMP_VERSION
           fi
       - name: "Install apt packages"
         run: |
