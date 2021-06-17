@@ -70,19 +70,20 @@ jobs:
           echo "deb http://archive.ubuntu.com/ubuntu/ focal-proposed universe" | sudo tee -a /etc/apt/sources.list
           sudo apt update
           sudo apt upgrade
-          sudo apt install -y ${{ matrix.compiler }}
-          ${{ matrix.compiler }} --version
-          if [[ ${{ matrix.compiler }} == g++* ]]; then
-            export GCC=$(echo ${{ matrix.compiler }} | sed "s/g++/gcc/")
-            sudo apt install $GCC
-            $GCC --version
-          else
+          if [[ ${{ matrix.compiler }} == clang* ]]; then
             if [[ ${{ matrix.compiler }} == *.* ]]; then
               export LIBOMP_VERSION=libomp-7-dev
             else
               export LIBOMP_VERSION=libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev
             fi
             sudo apt install -y $LIBOMP_VERSION
+          fi
+          sudo apt install -y ${{ matrix.compiler }}
+          ${{ matrix.compiler }} --version
+          if [[ ${{ matrix.compiler }} == g++* ]]; then
+            export GCC=$(echo ${{ matrix.compiler }} | sed "s/g++/gcc/")
+            sudo apt install $GCC
+            $GCC --version
           fi
       - name: "Install apt packages for ${{ matrix.test }}"
         run: |
@@ -112,10 +113,6 @@ jobs:
             else
               export LIBOMP_VERSION=libomp-$(echo ${{ matrix.compiler }} | sed "s/clang-//")-dev
             fi
-            export CPLUS_INCLUDE_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/omp.h" | sed "s|/omp.h||g"):$CPLUS_INCLUDE_PATH
-            export LD_LIBRARY_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/libomp5.so" | sed "s|/libomp5.so||g"):$LD_LIBRARY_PATH
-            export LD_LIBRARY_PATH=$(dpkg -L $LIBOMP_VERSION | grep ".*/libomp.so" | sed "s|/libomp.so||g"):$LD_LIBRARY_PATH
-            export LIBRARY_PATH=$LD_LIBRARY_PATH:$LIBRARY_PATH
           fi
           if [[ ${{ matrix.test }} == full ]]; then
             scons -j 2 RUN_CPP_EXAMPLES=1 RUN_PYTHON_EXAMPLES=1 CXX=$CXX CC=$CC COMPILER=$COMPILER
